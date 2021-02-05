@@ -334,3 +334,25 @@ Resources:
         AliasTarget:
           HostedZoneId: !GetAtt 'BackendLoadBalancer.CanonicalHostedZoneID'
           DNSName: !GetAtt 'BackendLoadBalancer.DNSName'
+
+  S3BucketForWWWRedirect:
+    Type: "AWS::S3::Bucket"
+    Properties: 
+      BucketName: !Sub 'www.${FrontendDomain}'
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        RedirectAllRequestsTo:
+          HostName: !Ref FrontendDomain
+          Protocol: https
+
+  WWWRedirectDNSRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Comment: !Sub 'Frontend DNS to ECS for ${EnvironmentName}'
+      RecordSets:
+      - Name: !Sub 'www.${FrontendDomain}.'
+        Type: A
+        AliasTarget:
+          HostedZoneId: Z2O1EMRO9K5GLX # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
+          DNSName: s3-website.us-east-2.amazonaws.com # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
