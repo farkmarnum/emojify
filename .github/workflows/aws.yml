@@ -100,5 +100,5 @@ jobs:
           ImagesTag=${{ env.image_tag }},
           FrontendDomain=${{ env.frontend-domain }},
           BackendDomain=${{ env.backend-domain }},
-          HostedZoneId=${{ env.hosted-zone-id }}
+          HostedZoneId=${{ env.hosted-zone-id }},
           EnvironmentName=${{ env.environment-name }}
