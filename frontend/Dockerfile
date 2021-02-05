@@ -1,4 +1,3 @@
-ARG REACT_APP_API_URL
 #
 # ---- Base ----
 #
@@ -21,8 +20,6 @@ FROM base as build
 WORKDIR /usr/src/app
 COPY ./ .
 
-RUN "echo \"REACT_APP_API_URL=$REACT_APP_API_URL\" > .env"
-
 RUN yarn add react-scripts --dev && yarn build
 
 #
@@ -34,6 +31,4 @@ WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/build .
 RUN yarn global add serve
 
-ENV PORT 3000
-
-CMD ["sh", "-c", "serve -p ${PORT}"]
+CMD ["sh", "-c", "serve -p 3000"]
