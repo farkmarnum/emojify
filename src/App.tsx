@@ -3,8 +3,13 @@ import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      test
+    <div className="main container">
+      <div className="row">
+        <div className="eight columns offset-by-two">
+          <h1 className="text-center">Hi!</h1>
+          <p>test</p>
+        </div>
+      </div>
     </div>
   );
 }
