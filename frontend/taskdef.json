@@ -1,0 +1,37 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "emojify-frontend",
+      "image": "***REMOVED***.dkr.ecr.us-east-2.amazonaws.com/emojify-frontend",
+      "environment": [
+        {
+          "name": "PORT",
+          "value": "3001"
+        }
+      ],
+      "cpu": 512,
+      "memoryReservation": 1024,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/emojify",
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ],
+  "family": "emojify-frontend",
+  "executionRoleArn": "arn:aws:iam::***REMOVED***:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "cpu": "512",
+  "memory": "1024"
+}
