@@ -13,7 +13,17 @@ module.exports = {
     'prettier/prettier': 'error',
     'react/jsx-filename-extension': [
       'error',
-      { extensions: ['.js', '.jsx', '.tsx'] },
+      { extensions: ['.js', '.ts', '.jsx', '.tsx'] },
+    ],
+    'import/extensions': [
+      'error',
+      'ignorePackages',
+      {
+        js: 'never',
+        jsx: 'never',
+        ts: 'never',
+        tsx: 'never',
+      },
     ],
   },
 
@@ -23,6 +33,7 @@ module.exports = {
     'import/resolver': {
       node: {
         moduleDirectory: ['node_modules', 'src'],
+        extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       },
     },
   },
