@@ -1,4 +1,7 @@
 import React, { useState } from 'react'
+import * as toastr from 'toastr'
+import Clipboard from 'react-clipboard.js'
+import 'toastr/build/toastr.min.css'
 import './App.css'
 
 const DENSITY_MAX = 100
@@ -26,6 +29,10 @@ const App = () => {
     } catch (err) {
       console.error(err)
     }
+  }
+
+  const onCopySuccess = () => {
+    toastr.success('Copied to clipboard!')
   }
 
   return (
@@ -95,6 +102,21 @@ const App = () => {
           id="conversion-result"
         >
           {conversionResult || '(Result will appear here)'}
+        </div>
+      </div>
+      <div className="row">
+        <div
+          className="eight columns offset-by-two"
+          style={{ marginTop: '1.5rem' }}
+        >
+          <Clipboard
+            data-clipboard-text={conversionResult}
+            className="btn"
+            style={{ float: 'right' }}
+            onSuccess={onCopySuccess}
+          >
+            copy to clipboard
+          </Clipboard>
         </div>
       </div>
     </div>
