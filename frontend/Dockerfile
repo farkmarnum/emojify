@@ -1,4 +1,4 @@
-ARG REACT_APP_API_URL
+ARG PORT
 #
 # ---- Base ----
 #
@@ -31,4 +31,4 @@ WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/build .
 RUN yarn global add serve
 
-CMD ["serve", "-p", "3000"]
+CMD ["serve", "-p", "$PORT"]
