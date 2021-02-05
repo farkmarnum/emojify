@@ -71,7 +71,7 @@ jobs:
         IMAGE_TAG: ${{ env.image_tag }}
       run: |
         cd frontend
-        docker build --build-arg PORT=3000 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
   cloudformation:

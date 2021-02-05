@@ -1,4 +1,3 @@
-ARG PORT
 #
 # ---- Base ----
 #
@@ -31,4 +30,6 @@ WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/build .
 RUN yarn global add serve
 
-CMD ["serve", "-p", $PORT]
+ENV PORT 3000
+
+CMD ["sh", "-c", "serve -p ${PORT}"]

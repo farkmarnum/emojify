@@ -178,6 +178,8 @@ Resources:
           Environment:
             - Name: REACT_APP_API_URL
               Value: !Sub 'https://${BackendDomain}'
+            - Name: PORT
+              Value: !Ref FrontendContainerPort
           PortMappings:
             - ContainerPort: !Ref FrontendContainerPort
           LogConfiguration:
