@@ -1,0 +1,302 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  EnvironmentName:
+    Type: String
+    MaxLength: 16
+    AllowedPattern: ^[a-z0-9-]*$
+  VPC:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: Choose which VPC the Application Load Balancer should be deployed to
+  Subnets:
+    Description: Choose which subnets the Application Load Balancer should be deployed to
+    Type: 'List<AWS::EC2::Subnet::Id>'
+  BackendTaskMemory:
+    Type: Number
+  BackendTaskCPU:
+    Type: Number
+  DesiredNumberOfBackendInstances:
+    Type: Number
+  DomainCertificateArn:
+    Description: Arn of ACM cert
+    Type: String
+  ImagesTag:
+    Type: String
+  FrontendContainerPort:
+    Type: Number
+    Default: 3000
+  BackendContainerPort:
+    Type: Number
+    Default: 3000
+  BackendDomain:
+    Type: String
+
+Resources:
+  # SHARED:
+  CloudWatchLogsGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: !Ref 'AWS::StackName'
+      RetentionInDays: 365
+
+  Cluster:
+    Type: 'AWS::ECS::Cluster'
+    Properties:
+      ClusterName: !Sub '${EnvironmentName}-cluster'
+      CapacityProviders:
+        - FARGATE
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  ExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub '${EnvironmentName}-ExecutionRole' 
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+
+  # FRONTEND:
+  FrontendLoadBalancerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 80 and 443 from all
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+  FrontendSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Load Balancer -> container port
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref FrontendContainerPort
+          ToPort: !Ref FrontendContainerPort
+          SourceSecurityGroupId: !GetAtt FrontendLoadBalancerSecurityGroup.GroupId
+    
+  FrontendTargetGroup:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      TargetType: ip
+      Name: !Sub '${EnvironmentName}-fe-tg'
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPC
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTP
+
+  FrontendMainListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn: !Ref FrontendLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref FrontendTargetGroup
+      Certificates:
+        - CertificateArn: !Ref DomainCertificateArn
+    
+  FrontendRedirectListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn: !Ref FrontendLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - RedirectConfig:
+            Host: '#{host}'
+            Path: '/#{path}'
+            Port: 443
+            Protocol: HTTPS
+            Query: '#{query}'
+            StatusCode: HTTP_301
+          Type: redirect
+    
+  FrontendLoadBalancer:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Name: !Sub '${EnvironmentName}-fe-lb'
+      Scheme: internal
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-fe-lb'
+      Subnets: !Ref Subnets
+      SecurityGroups:
+        - !GetAtt FrontendLoadBalancerSecurityGroup.GroupId
+
+  FrontendService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      Cluster: !Ref Cluster
+      DesiredCount: 1
+      LaunchType: FARGATE
+      TaskDefinition: !Ref FrontendTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref Subnets
+          SecurityGroups:
+            - !GetAtt FrontendSecurityGroup.GroupId
+      LoadBalancers:
+        - ContainerName: !Ref EnvironmentName
+          ContainerPort: !Ref FrontendContainerPort
+          TargetGroupArn: !Ref FrontendTargetGroup
+    DependsOn:
+      - FrontendMainListener
+    
+  FrontendTaskDefinition:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family: !Ref EnvironmentName
+      Memory: 1024
+      Cpu: 512
+      ContainerDefinitions:
+        - Name: !Ref EnvironmentName
+          Essential: true
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.us-east-2.amazonaws.com/emojify-frontend:${ImagesTag}'
+          Environment:
+            - REACT_APP_API_URL: !Sub 'https://${BackendDomain}'
+          PortMappings:
+            - ContainerPort: !Ref FrontendContainerPort
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: !Ref EnvironmentName
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref ExecutionRole
+
+  # BACKEND:
+  BackendLoadBalancerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 80 and 443 from all
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+  BackendSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Load Balancer -> container port
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref BackendContainerPort
+          ToPort: !Ref BackendContainerPort
+          SourceSecurityGroupId: !GetAtt BackendLoadBalancerSecurityGroup.GroupId
+    
+  BackendTargetGroup:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      TargetType: ip
+      Name: !Sub '${EnvironmentName}-be-tg'
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPC
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTP
+
+  BackendMainListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn: !Ref BackendLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref BackendTargetGroup
+      Certificates:
+        - CertificateArn: !Ref DomainCertificateArn
+    
+  BackendRedirectListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn: !Ref BackendLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - RedirectConfig:
+            Host: '#{host}'
+            Path: '/#{path}'
+            Port: 443
+            Protocol: HTTPS
+            Query: '#{query}'
+            StatusCode: HTTP_301
+          Type: redirect
+    
+  BackendLoadBalancer:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Name: !Sub '${EnvironmentName}-be-lb'
+      Scheme: internal
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-be-lb'
+      Subnets: !Ref Subnets
+      SecurityGroups:
+        - !GetAtt BackendLoadBalancerSecurityGroup.GroupId
+
+  BackendService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      Cluster: !Ref Cluster
+      DesiredCount: !Ref DesiredNumberOfBackendInstances
+      LaunchType: FARGATE
+      TaskDefinition: !Ref BackendTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref Subnets
+          SecurityGroups:
+            - !GetAtt BackendSecurityGroup.GroupId
+      LoadBalancers:
+        - ContainerName: !Ref EnvironmentName
+          ContainerPort: !Ref BackendContainerPort
+          TargetGroupArn: !Ref BackendTargetGroup
+    DependsOn:
+      - BackendMainListener
+    
+  BackendTaskDefinition:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family: !Ref EnvironmentName
+      Memory: !Ref BackendTaskMemory
+      Cpu: !Ref BackendTaskCPU
+      ContainerDefinitions:
+        - Name: !Ref EnvironmentName
+          Essential: true
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.us-east-2.amazonaws.com/emojify-backend:${ImagesTag}'
+          Environment:
+            - PORT: !Ref BackendContainerPort
+          PortMappings:
+            - ContainerPort: !Ref BackendContainerPort
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: !Ref EnvironmentName
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref ExecutionRole
