@@ -1,3 +1,4 @@
+ARG REACT_APP_API_URL
 #
 # ---- Base ----
 #
@@ -19,6 +20,9 @@ RUN yarn install --production --silent
 FROM base as build
 WORKDIR /usr/src/app
 COPY ./ .
+
+RUN "echo \"REACT_APP_API_URL=$REACT_APP_API_URL\" > .env"
+
 RUN yarn add react-scripts --dev && yarn build
 
 #
