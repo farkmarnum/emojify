@@ -138,7 +138,6 @@ Resources:
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
     Properties:
       Name: !Sub '${EnvironmentName}-fe-lb'
-      Scheme: internal
       Tags:
         - Key: Name
           Value: !Sub '${EnvironmentName}-fe-lb'
@@ -259,7 +258,6 @@ Resources:
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
     Properties:
       Name: !Sub '${EnvironmentName}-be-lb'
-      Scheme: internal
       Tags:
         - Key: Name
           Value: !Sub '${EnvironmentName}-be-lb'
