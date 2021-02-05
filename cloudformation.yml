@@ -1,11 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
 Parameters:
-  VPC:
-    Type: 'AWS::EC2::VPC::Id'
-    Description: Choose which VPC the Application Load Balancer should be deployed to
-  Subnets:
-    Description: Choose which subnets the Application Load Balancer should be deployed to
-    Type: 'List<AWS::EC2::Subnet::Id>'
   DomainCertificateArn:
     Description: Arn of ACM cert
     Type: String
@@ -18,6 +12,14 @@ Parameters:
   HostedZoneId:
     Type: String
 
+  VPC:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: Choose which VPC the Application Load Balancer should be deployed to
+    Default: vpc-72b6bd1a
+  Subnets:
+    Description: Choose which subnets the Application Load Balancer should be deployed to
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Default: subnet-9e5361f6,subnet-886109f2
   EnvironmentName:
     Type: String
     MaxLength: 16
@@ -86,7 +88,7 @@ Resources:
   FrontendSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
-      GroupDescription: Load Balancer -> container port
+      GroupDescription: Load Balancer to container port
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: !Ref FrontendContainerPort
@@ -175,7 +177,8 @@ Resources:
           Essential: true
           Image: !Sub '${AWS::AccountId}.dkr.ecr.us-east-2.amazonaws.com/emojify-frontend:${ImagesTag}'
           Environment:
-            - REACT_APP_API_URL: !Sub 'https://${BackendDomain}'
+            - Name: REACT_APP_API_URL
+              Value: !Sub 'https://${BackendDomain}'
           PortMappings:
             - ContainerPort: !Ref FrontendContainerPort
           LogConfiguration:
@@ -206,7 +209,7 @@ Resources:
   BackendSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
-      GroupDescription: Load Balancer -> container port
+      GroupDescription: Load Balancer to container port
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: !Ref BackendContainerPort
@@ -295,7 +298,8 @@ Resources:
           Essential: true
           Image: !Sub '${AWS::AccountId}.dkr.ecr.us-east-2.amazonaws.com/emojify-backend:${ImagesTag}'
           Environment:
-            - PORT: !Ref BackendContainerPort
+            - Name: PORT
+              Value: !Ref BackendContainerPort
           PortMappings:
             - ContainerPort: !Ref BackendContainerPort
           LogConfiguration:

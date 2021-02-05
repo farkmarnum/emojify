@@ -20,8 +20,6 @@ env:
   frontend-domain: emojify.net
   backend-domain: api.emojify.net
   hosted-zone-id: Z01187342BJLM81O38FA3
-  vpc: vpc-72b6bd1a
-  subnets: subnet-9e5361f6,subnet-886109f2
 
   cloudformation-role-arn: arn:aws:iam::***REMOVED***:role/cloudformation-full
   AWS_REGION: us-east-2
@@ -98,8 +96,6 @@ jobs:
         capabilities: CAPABILITY_NAMED_IAM
         role-arn: ${{ env.cloudformation-role-arn }}
         parameter-overrides: >-
-          VPC=${{ env.vpc }},
-          Subnets=${{ env.subnets }},
           DomainCertificateArn=${{ env.certificate-arn }},
           ImagesTag=${{ env.image_tag }},
           FrontendDomain=${{ env.frontend-domain }},
