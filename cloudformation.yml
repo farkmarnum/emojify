@@ -176,6 +176,8 @@ Resources:
           Essential: true
           Image: !Sub '${AWS::AccountId}.dkr.ecr.us-east-2.amazonaws.com/emojify-frontend:${ImagesTag}'
           Environment:
+            - Name: REACT_APP_API_URL
+              Value: !Sub 'https://${BackendDomain}'
             - Name: PORT
               Value: !Ref FrontendContainerPort
           PortMappings:
