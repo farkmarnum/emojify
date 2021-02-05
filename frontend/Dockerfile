@@ -31,4 +31,4 @@ WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/build .
 RUN yarn global add serve
 
-CMD ["serve", "-p", "$PORT"]
+CMD ["serve", "-p", $PORT]
