@@ -1,34 +1,42 @@
 AWSTemplateFormatVersion: 2010-09-09
 Parameters:
-  EnvironmentName:
-    Type: String
-    MaxLength: 16
-    AllowedPattern: ^[a-z0-9-]*$
   VPC:
     Type: 'AWS::EC2::VPC::Id'
     Description: Choose which VPC the Application Load Balancer should be deployed to
   Subnets:
     Description: Choose which subnets the Application Load Balancer should be deployed to
     Type: 'List<AWS::EC2::Subnet::Id>'
-  BackendTaskMemory:
-    Type: Number
-  BackendTaskCPU:
-    Type: Number
-  DesiredNumberOfBackendInstances:
-    Type: Number
   DomainCertificateArn:
     Description: Arn of ACM cert
     Type: String
   ImagesTag:
     Type: String
+  FrontendDomain:
+    Type: String
+  BackendDomain:
+    Type: String
+  HostedZoneId:
+    Type: String
+
+  EnvironmentName:
+    Type: String
+    MaxLength: 16
+    AllowedPattern: ^[a-z0-9-]*$
+  BackendTaskMemory:
+    Type: Number
+    Default: 1024
+  BackendTaskCPU:
+    Type: Number
+    Default: 512
+  DesiredNumberOfBackendInstances:
+    Type: Number
+    Default: 1
   FrontendContainerPort:
     Type: Number
     Default: 3000
   BackendContainerPort:
     Type: Number
     Default: 3000
-  BackendDomain:
-    Type: String
 
 Resources:
   # SHARED:
@@ -300,3 +308,29 @@ Resources:
         - FARGATE
       NetworkMode: awsvpc
       ExecutionRoleArn: !Ref ExecutionRole
+
+  FrontendDNSRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Comment: !Sub 'Frontend DNS to ECS for ${EnvironmentName}'
+      RecordSets:
+      - Name: !Sub '${FrontendDomain}.'
+        Type: A
+        TTL: 3600
+        AliasTarget:
+          HostedZoneId: !GetAtt 'FrontendLoadBalancer.CanonicalHostedZoneID'
+          DNSName: !GetAtt 'FrontendLoadBalancer.DNSName'
+
+  BackendDNSRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Comment: !Sub 'Backend DNS to ECS for ${EnvironmentName}'
+      RecordSets:
+      - Name: !Sub '${BackendDomain}.'
+        Type: A
+        TTL: 3600
+        AliasTarget:
+          HostedZoneId: !GetAtt 'BackendLoadBalancer.CanonicalHostedZoneID'
+          DNSName: !GetAtt 'BackendLoadBalancer.DNSName'
