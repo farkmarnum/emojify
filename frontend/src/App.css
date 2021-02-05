@@ -1,0 +1,30 @@
+.main {
+  margin-top: 3rem;
+}
+
+#input {
+  min-height: 10rem;
+}
+
+#conversion-result {
+  padding: 6px 10px;
+  border: 1px solid lightgray;
+  min-height: 10rem;
+}
+
+.btn,
+.btn:focus {
+  background-color: #00b4d8;
+  border-color: #00b4d8;
+  color: white;
+}
+.btn:hover {
+  background-color: #0096c7;
+  border-color: #0096c7;
+  color: white;
+}
+.btn:active {
+  background-color: #0077b6;
+  border-color: #0077b6;
+  color: white;
+}
