@@ -321,7 +321,6 @@ Resources:
       RecordSets:
       - Name: !Sub '${FrontendDomain}.'
         Type: A
-        TTL: 3600
         AliasTarget:
           HostedZoneId: !GetAtt 'FrontendLoadBalancer.CanonicalHostedZoneID'
           DNSName: !GetAtt 'FrontendLoadBalancer.DNSName'
@@ -334,7 +333,6 @@ Resources:
       RecordSets:
       - Name: !Sub '${BackendDomain}.'
         Type: A
-        TTL: 3600
         AliasTarget:
           HostedZoneId: !GetAtt 'BackendLoadBalancer.CanonicalHostedZoneID'
           DNSName: !GetAtt 'BackendLoadBalancer.DNSName'
