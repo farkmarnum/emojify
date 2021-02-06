@@ -39,6 +39,8 @@ Parameters:
   BackendContainerPort:
     Type: Number
     Default: 3000
+  GoogleAnalyticsTrackingId:
+    Type: String
 
 Resources:
   # SHARED:
@@ -178,6 +180,8 @@ Resources:
           Environment:
             - Name: REACT_APP_API_URL
               Value: !Sub 'https://${BackendDomain}'
+            - Name: REACT_APP_GOOGLE_ANALYTICS_TRACKING_ID
+              Value: !Ref GoogleAnalyticsTrackingId
             - Name: PORT
               Value: !Ref FrontendContainerPort
           PortMappings:

@@ -16,16 +16,17 @@ on:
 env:
   stack-name: emojify-prod
   environment-name: emojify-prod
-  certificate-arn: arn:aws:acm:us-east-2:***REMOVED***:certificate/2358ece1-9b02-43b4-936a-0f89442c3e62
+  certificate-arn: arn:aws:acm:us-east-2:${{ secrets.AWS_ACCOUNT_ID }}:certificate/2358ece1-9b02-43b4-936a-0f89442c3e62
   frontend-domain: emojify.net
   backend-domain: api.emojify.net
   hosted-zone-id: Z01187342BJLM81O38FA3
 
-  cloudformation-role-arn: arn:aws:iam::***REMOVED***:role/cloudformation-full
+  cloudformation-role-arn: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/cloudformation-full
   AWS_REGION: us-east-2
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   image_tag: ${{ github.sha }}
+  google-analytics-tracking-id: ${{ secrets.GA_TRACKING_ID }}
 
 jobs:
   build-and-upload-backend:
@@ -104,4 +105,5 @@ jobs:
           HostedZoneId=${{ env.hosted-zone-id }},
           EnvironmentName=${{ env.environment-name }},
           FrontendContainerPort=3000,
-          BackendContainerPort=3000
+          BackendContainerPort=3000,
+          GoogleAnalyticsTrackingId=${{ env.google-analytics-tracking-id }}
