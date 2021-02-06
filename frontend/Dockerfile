@@ -19,6 +19,7 @@ RUN yarn install --production --silent
 FROM base as build
 WORKDIR /usr/src/app
 COPY ./ .
+COPY ./.env .
 
 RUN yarn add react-scripts --dev && yarn build
 

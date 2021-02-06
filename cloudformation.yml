@@ -105,8 +105,11 @@ Resources:
       Port: 80
       Protocol: HTTP
       VpcId: !Ref VPC
-      HealthCheckIntervalSeconds: 30
+      HealthCheckIntervalSeconds: 10
       HealthCheckProtocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 15
 
   FrontendMainListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
@@ -222,8 +225,11 @@ Resources:
       Port: 80
       Protocol: HTTP
       VpcId: !Ref VPC
-      HealthCheckIntervalSeconds: 30
+      HealthCheckIntervalSeconds: 10
       HealthCheckProtocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 15
 
   BackendMainListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'

@@ -29,6 +29,8 @@ RUN yarn install --production --silent \
 FROM base as build
 WORKDIR /usr/src/app
 COPY ./ .
+COPY ./.env .
+
 RUN yarn add typescript --dev && yarn build
 
 #
