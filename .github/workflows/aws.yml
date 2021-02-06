@@ -75,7 +75,7 @@ jobs:
 
     - name: Create env file
       run: |
-        cd backend
+        cd frontend
         touch .env
         echo REACT_APP_API_URL=https://${{ env.backend-domain }} >> .env
         echo REACT_APP_GOOGLE_ANALYTICS_TRACKING_ID=${{ env.google-analytics-tracking-id }} >> .env
