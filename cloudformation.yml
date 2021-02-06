@@ -106,6 +106,7 @@ Resources:
       Protocol: HTTP
       VpcId: !Ref VPC
       HealthCheckIntervalSeconds: 10
+      HealthyThresholdCount: 2
       HealthCheckProtocol: HTTP
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
@@ -226,6 +227,7 @@ Resources:
       Protocol: HTTP
       VpcId: !Ref VPC
       HealthCheckIntervalSeconds: 10
+      HealthyThresholdCount: 2
       HealthCheckProtocol: HTTP
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
