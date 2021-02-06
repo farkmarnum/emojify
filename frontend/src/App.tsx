@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import * as toastr from 'toastr'
 import Clipboard from 'react-clipboard.js'
 import 'toastr/build/toastr.min.css'
@@ -29,21 +29,32 @@ const App = () => {
       setConversionResult(result)
     } catch (err) {
       console.error(err)
+      toastr.error('something went wrong...', 'Server error')
     }
   }
 
-  const onCopySuccess = () => {
-    toastr.success('Copied to clipboard!')
-  }
+  useEffect(() => {
+    const updateCSSVar = () => {
+      document.documentElement.style.setProperty(
+        '--vh',
+        `${window.innerHeight / 100}px`,
+      )
+    }
 
+    updateCSSVar()
+    window.addEventListener('resize', updateCSSVar)
+
+    return () => {
+      window.removeEventListener('resize', updateCSSVar)
+    }
+  }, [])
   return (
     <>
       <div className="main container">
         <div className="row text-center">
-          <h1>Emojipasta Generator</h1>
+          <h1>Emojify your text!</h1>
           <p className="subtitle">
-            This algorithm was trained on all text posts containing emojis in
-            the subreddit{' '}
+            This algorithm was trained on text posts from the subreddit{' '}
             <a
               href="https://www.reddit.com/r/emojipasta"
               target="_blank"
@@ -128,7 +139,9 @@ const App = () => {
               data-clipboard-text={conversionResult}
               className="btn"
               style={{ float: 'right' }}
-              onSuccess={onCopySuccess}
+              onSuccess={() => toastr.success('Copied to clipboard!')}
+              onError={() => toastr.success('Something went wrong...')}
+              button-disabled={!conversionResult}
             >
               copy to clipboard
             </Clipboard>
