@@ -42,6 +42,13 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
+    - name: Make envfile
+      uses: SpicyPizza/create-envfile@v1
+      with:
+        PORT: 3000
+        directory: backend
+        file_name: .env
+
     - name: Build, tag, and push image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -64,6 +71,15 @@ jobs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Make envfile
+      uses: SpicyPizza/create-envfile@v1
+      with:
+        REACT_APP_API_URL: https://${{ env.backend-domain }}
+        REACT_APP_GOOGLE_ANALYTICS_TRACKING_ID: ${{ env.google-analytics-tracking-id }}
+        PORT: 3000
+        directory: frontend
+        file_name: .env
 
     - name: Build, tag, and push image to Amazon ECR
       env:

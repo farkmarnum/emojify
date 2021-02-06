@@ -6,7 +6,7 @@ import './App.css'
 
 const DENSITY_MAX = 100
 
-const apiUrl = process.env.REACT_APP_API_URL || 'https://api.emojify.net'
+const apiUrl = process.env.REACT_APP_API_URL
 
 const App = () => {
   const [input, setInput] = useState('')
