@@ -19,6 +19,8 @@ env:
   certificate-arn: arn:aws:acm:us-east-2:${{ secrets.AWS_ACCOUNT_ID }}:certificate/2358ece1-9b02-43b4-936a-0f89442c3e62
   frontend-domain: emojify.net
   backend-domain: api.emojify.net
+  frontend-port: 3000
+  backend-port: 3000
   hosted-zone-id: Z01187342BJLM81O38FA3
 
   cloudformation-role-arn: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/cloudformation-full
@@ -42,12 +44,11 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Make envfile
-      uses: SpicyPizza/create-envfile@v1
-      with:
-        envkey_PORT: 3000
-        directory: backend
-        file_name: .env
+    - name: Create env file
+      run: |
+        cd backend
+        touch .env
+        echo PORT=${{ env.backend-port }} >> .env
 
     - name: Build, tag, and push image to Amazon ECR
       env:
@@ -72,21 +73,19 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Make envfile
-      uses: SpicyPizza/create-envfile@v1
-      with:
-        envkey_REACT_APP_API_URL: https://${{ env.backend-domain }}
-        envkey_REACT_APP_GOOGLE_ANALYTICS_TRACKING_ID: ${{ env.google-analytics-tracking-id }}
-        envkey_PORT: 3000
-        directory: frontend
-        file_name: .env
+    - name: Create env file
+      run: |
+        cd backend
+        touch .env
+        echo REACT_APP_API_URL=https://${{ env.backend-domain }} >> .env
+        echo REACT_APP_GOOGLE_ANALYTICS_TRACKING_ID=${{ env.google-analytics-tracking-id }} >> .env
+        echo PORT=${{ env.frontend-port }} >> .env
 
     - name: Build, tag, and push image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: emojify-frontend
         IMAGE_TAG: ${{ env.image_tag }}
-        API_URL: ${{ env.backend-domain }}
       run: |
         cd frontend
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -120,6 +119,6 @@ jobs:
           BackendDomain=${{ env.backend-domain }},
           HostedZoneId=${{ env.hosted-zone-id }},
           EnvironmentName=${{ env.environment-name }},
-          FrontendContainerPort=3000,
-          BackendContainerPort=3000,
+          FrontendContainerPort=${{ env.frontend-port }},
+          BackendContainerPort=${{ env.backend-port }},
           GoogleAnalyticsTrackingId=${{ env.google-analytics-tracking-id }}
