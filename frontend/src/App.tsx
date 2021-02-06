@@ -11,6 +11,7 @@ const apiUrl = process.env.REACT_APP_API_URL || 'https://api.emojify.net'
 const App = () => {
   const [input, setInput] = useState('')
   const [density, setDensity] = useState(DENSITY_MAX)
+  const [shouldFilterEmojis, setShouldFilterEmojis] = useState(true)
   const [conversionResult, setConversionResult] = useState<string>()
 
   const convert = async () => {
@@ -20,7 +21,7 @@ const App = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ input, density }),
+        body: JSON.stringify({ input, density, shouldFilterEmojis }),
       })
       const data = await response.json()
 
@@ -77,22 +78,35 @@ const App = () => {
                 />
               </span>{' '}
               <span style={{ fontSize: '2.4rem', verticalAlign: '-0.2rem' }}>
-                {density <= 10 && '😶😶😶'}
-                {density > 10 && density <= 20 && '😐😐😐'}
-                {density > 20 && density <= 30 && '🙂🙂🙂'}
-                {density > 30 && density <= 40 && '😀😀😀'}
-                {density > 40 && density <= 50 && '😛😛😛'}
-                {density > 50 && density <= 60 && '😅😅😅'}
-                {density > 60 && density <= 70 && '😂😂😂'}
-                {density > 70 && density <= 80 && '🤣🤣🤣'}
-                {density > 80 && density <= 90 && '😈😈😈'}
-                {density > 90 && density <= 100 && '💩💩💩'}
+                {density <= 10 && '😶'}
+                {density > 10 && density <= 20 && '😐'}
+                {density > 20 && density <= 30 && '🙂'}
+                {density > 30 && density <= 40 && '😀'}
+                {density > 40 && density <= 50 && '😛'}
+                {density > 50 && density <= 60 && '😅'}
+                {density > 60 && density <= 70 && '😂'}
+                {density > 70 && density <= 80 && '🤣'}
+                {density > 80 && density <= 90 && '😈'}
+                {density > 90 && density <= 100 && '💩'}
               </span>
             </div>
             <button type="button" onClick={convert} className="btn">
               Convert
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="eight columns offset-by-two">
+          Filter out inappropriate emojis{' '}
+          <input
+            type="checkbox"
+            checked={shouldFilterEmojis}
+            onChange={(evt) => {
+              setShouldFilterEmojis(evt.target.checked)
+            }}
+          />
         </div>
       </div>
       <div className="row">
