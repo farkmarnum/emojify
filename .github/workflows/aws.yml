@@ -45,7 +45,7 @@ jobs:
     - name: Make envfile
       uses: SpicyPizza/create-envfile@v1
       with:
-        PORT: 3000
+        envkey_PORT: 3000
         directory: backend
         file_name: .env
 
@@ -75,9 +75,9 @@ jobs:
     - name: Make envfile
       uses: SpicyPizza/create-envfile@v1
       with:
-        REACT_APP_API_URL: https://${{ env.backend-domain }}
-        REACT_APP_GOOGLE_ANALYTICS_TRACKING_ID: ${{ env.google-analytics-tracking-id }}
-        PORT: 3000
+        envkey_REACT_APP_API_URL: https://${{ env.backend-domain }}
+        envkey_REACT_APP_GOOGLE_ANALYTICS_TRACKING_ID: ${{ env.google-analytics-tracking-id }}
+        envkey_PORT: 3000
         directory: frontend
         file_name: .env
 
