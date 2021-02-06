@@ -23,34 +23,38 @@ app.get('/', (_req: express.Request, res: express.Result) => {
 
 app.post('/convert', (req: express.Request, res: express.Result) => {
   const { input, density, shouldFilterEmojis } = req.body
+
   const words = input.replace(/\n/g, ' ').split(' ')
 
   const result = words.reduce((acc: string, wordRaw: string) => {
     const word = wordRaw.replace(/[^0-9a-zA-Z]/g, '').toLowerCase()
 
+    const accNext = `${acc} ${wordRaw}`
+
     const randomChoice = Math.random() * 100 <= density
     const isTooCommon = commonWords.has(word)
-    const wordHasEmojis = Object.prototype.hasOwnProperty.call(emojiData, word)
 
     const emojiFilter = shouldFilterEmojis
       ? (option: string) => !isInappropriate(option)
       : () => true
 
-    if (randomChoice && !isTooCommon && wordHasEmojis) {
-      const emojiOptionsMapping = emojiData[word]
-      const emojiOptionsList = []
-      Object.entries(emojiOptionsMapping)
-        .filter(([option]) => emojiFilter(option))
-        .forEach(([option, frequency]) => {
-          ;[...Array(frequency).keys()].forEach(() => {
-            emojiOptionsList.push(option)
-          })
-        })
-      const index = Math.floor(emojiOptionsList.length * Math.random())
-      const emojis = emojiOptionsList[index]
-      return `${acc} ${wordRaw} ${emojis}`
+    const emojiOptions = Object.entries(emojiData[word] || {})
+      .filter(([option]) => emojiFilter(option))
+      .reduce(
+        (arr, [option, frequency]) => [
+          ...arr,
+          ...[...Array(frequency)].fill(option),
+        ],
+        [],
+      )
+
+    if (isTooCommon || !randomChoice || emojiOptions.length === 0) {
+      return accNext
     }
-    return `${acc} ${wordRaw}`
+
+    const emojis = emojiOptions[Math.floor(Math.random() * emojiOptions.length)]
+
+    return `${accNext} ${emojis}`
   }, '')
 
   res.json({ result })
