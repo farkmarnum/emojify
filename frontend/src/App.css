@@ -1,5 +1,16 @@
 .main {
   margin-top: 3rem;
+  min-height: calc(100vh - 3rem - 6rem);
+}
+@media screen and (max-width: 768px) {
+  .main {
+    margin-top: 1rem;
+    min-height: calc(100vh - 3rem - 8rem);
+  }
+
+  h1 {
+    font-size: 3.5rem;
+  }
 }
 
 .subtitle {
@@ -83,4 +94,13 @@
   border-radius: 100%;
   background: #084887;
   cursor: pointer;
+}
+
+footer {
+  text-align: center;
+  padding: 0.5rem 0 1rem;
+}
+
+.funding {
+  color: gray;
 }
