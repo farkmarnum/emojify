@@ -106,11 +106,11 @@ Resources:
       Protocol: HTTP
       VpcId: !Ref VPC
       HealthCheckIntervalSeconds: 10
-      HealthyThresholdCount: 2
+      HealthyThresholdCount: 3
       HealthCheckProtocol: HTTP
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
-          Value: 15
+          Value: 30
 
   FrontendMainListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
@@ -227,11 +227,11 @@ Resources:
       Protocol: HTTP
       VpcId: !Ref VPC
       HealthCheckIntervalSeconds: 10
-      HealthyThresholdCount: 2
+      HealthyThresholdCount: 3
       HealthCheckProtocol: HTTP
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
-          Value: 15
+          Value: 30
 
   BackendMainListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
