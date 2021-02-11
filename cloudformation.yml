@@ -33,14 +33,9 @@ Parameters:
   DesiredNumberOfBackendInstances:
     Type: Number
     Default: 1
-  FrontendContainerPort:
-    Type: Number
-    Default: 3000
   BackendContainerPort:
     Type: Number
     Default: 3000
-  GoogleAnalyticsTrackingId:
-    Type: String
 
 Resources:
   # SHARED:
@@ -74,125 +69,84 @@ Resources:
         - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
 
   # FRONTEND:
-  FrontendLoadBalancerSecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
+  CloudFrontOriginIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
-      GroupDescription: 80 and 443 from all
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: '80'
-          ToPort: '80'
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: '443'
-          ToPort: '443'
-          CidrIp: 0.0.0.0/0
-  FrontendSecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
-    Properties:
-      GroupDescription: Load Balancer to container port
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: !Ref FrontendContainerPort
-          ToPort: !Ref FrontendContainerPort
-          SourceSecurityGroupId: !GetAtt FrontendLoadBalancerSecurityGroup.GroupId
-    
-  FrontendTargetGroup:
-    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
-    Properties:
-      TargetType: ip
-      Name: !Sub '${EnvironmentName}-fe-tg'
-      Port: 80
-      Protocol: HTTP
-      VpcId: !Ref VPC
-      HealthCheckIntervalSeconds: 10
-      HealthyThresholdCount: 3
-      HealthCheckProtocol: HTTP
-      TargetGroupAttributes:
-        - Key: deregistration_delay.timeout_seconds
-          Value: 30
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: 'frontend origin access identity'
 
-  FrontendMainListener:
-    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+  FrontendS3Bucket:
+    Type: AWS::S3::Bucket
     Properties:
-      LoadBalancerArn: !Ref FrontendLoadBalancer
-      Port: 443
-      Protocol: HTTPS
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref FrontendTargetGroup
-      Certificates:
-        - CertificateArn: !Ref DomainCertificateArn
-    
-  FrontendRedirectListener:
-    Type: 'AWS::ElasticLoadBalancingV2::Listener'
-    Properties:
-      LoadBalancerArn: !Ref FrontendLoadBalancer
-      Port: 80
-      Protocol: HTTP
-      DefaultActions:
-        - RedirectConfig:
-            Host: '#{host}'
-            Path: '/#{path}'
-            Port: 443
-            Protocol: HTTPS
-            Query: '#{query}'
-            StatusCode: HTTP_301
-          Type: redirect
-    
-  FrontendLoadBalancer:
-    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
-    Properties:
-      Name: !Sub '${EnvironmentName}-fe-lb'
-      Tags:
-        - Key: Name
-          Value: !Sub '${EnvironmentName}-fe-lb'
-      Subnets: !Ref Subnets
-      SecurityGroups:
-        - !GetAtt FrontendLoadBalancerSecurityGroup.GroupId
+      BucketName: !Ref FrontendDomain
+      WebsiteConfiguration:
+        IndexDocument: index.html
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - "*"
+          AllowedMethods:
+          - GET
+          AllowedOrigins:
+          - "*"
+          Id: OpenCors
 
-  FrontendService:
-    Type: 'AWS::ECS::Service'
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
     Properties:
-      Cluster: !Ref Cluster
-      DesiredCount: 1
-      LaunchType: FARGATE
-      TaskDefinition: !Ref FrontendTaskDefinition
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
-          Subnets: !Ref Subnets
-          SecurityGroups:
-            - !GetAtt FrontendSecurityGroup.GroupId
-      LoadBalancers:
-        - ContainerName: !Ref EnvironmentName
-          ContainerPort: !Ref FrontendContainerPort
-          TargetGroupArn: !Ref FrontendTargetGroup
-    DependsOn:
-      - FrontendMainListener
-    
-  FrontendTaskDefinition:
-    Type: 'AWS::ECS::TaskDefinition'
+      Bucket: !Ref FrontendS3Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOriginIdentity.S3CanonicalUserId
+            Action: "s3:GetObject"
+            Resource: !Sub "${FrontendS3Bucket.Arn}/*"
+
+  CloudFront:
+    Type: AWS::CloudFront::Distribution
     Properties:
-      Family: !Ref EnvironmentName
-      Memory: 1024
-      Cpu: 512
-      ContainerDefinitions:
-        - Name: !Ref EnvironmentName
-          Essential: true
-          Image: !Sub '${AWS::AccountId}.dkr.ecr.us-east-2.amazonaws.com/emojify-frontend:${ImagesTag}'
-          PortMappings:
-            - ContainerPort: !Ref FrontendContainerPort
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-group: !Ref CloudWatchLogsGroup
-              awslogs-region: !Ref 'AWS::Region'
-              awslogs-stream-prefix: !Ref EnvironmentName
-      RequiresCompatibilities:
-        - FARGATE
-      NetworkMode: awsvpc
-      ExecutionRoleArn: !Ref ExecutionRole
+      DistributionConfig:
+        Origins:
+        - DomainName: !GetAtt FrontendS3Bucket.DomainName
+          Id: S3Origin
+          S3OriginConfig:
+            OriginAccessIdentity: !Ref CloudFrontOriginIdentity
+        Aliases:
+          - !Ref FrontendDomain
+        Enabled: 'true'
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          TargetOriginId: S3
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          SmoothStreaming: false
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+          OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf # https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html
+        HttpVersion: http2
+        ViewerCertificate:
+          AcmCertificateArn: !Ref DomainCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2019
+
+  FrontendDNSRecord:
+    Type: 'AWS::Route53::RecordSetGroup'
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        - Name: !Sub '${FrontendDomain}.'
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html
+            DNSName: !GetAtt CloudFront.DomainName
 
   # BACKEND:
   BackendLoadBalancerSecurityGroup:
@@ -317,18 +271,6 @@ Resources:
         - FARGATE
       NetworkMode: awsvpc
       ExecutionRoleArn: !Ref ExecutionRole
-
-  FrontendDNSRecord:
-    Type: AWS::Route53::RecordSetGroup
-    Properties:
-      HostedZoneId: !Ref HostedZoneId
-      Comment: !Sub 'Frontend DNS to ECS for ${EnvironmentName}'
-      RecordSets:
-      - Name: !Sub '${FrontendDomain}.'
-        Type: A
-        AliasTarget:
-          HostedZoneId: !GetAtt 'FrontendLoadBalancer.CanonicalHostedZoneID'
-          DNSName: !GetAtt 'FrontendLoadBalancer.DNSName'
 
   BackendDNSRecord:
     Type: AWS::Route53::RecordSetGroup
