@@ -12,5 +12,4 @@ An emojipasta generator trained with the posts from /r/emojipasta!
  
  ## TODOs
  
-  - deployment is to complicated -- simplify this
   - add some examples so users can quickly see results without typing a lot?
