@@ -117,7 +117,7 @@ jobs:
             BackendDomain=${{ env.backend-domain }},
             HostedZoneId=${{ env.hosted-zone-id }},
             EnvironmentName=${{ env.environment-name }},
-            BackendContainerPort=${{ env.backend-port }},
+            BackendContainerPort=${{ env.backend-port }}
 
   finalize-frontend-upload:
     name: finish frontend upload
