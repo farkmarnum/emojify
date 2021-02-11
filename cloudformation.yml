@@ -112,7 +112,7 @@ Resources:
         - DomainName: !GetAtt FrontendS3Bucket.DomainName
           Id: S3Origin
           S3OriginConfig:
-            OriginAccessIdentity: !Ref CloudFrontOriginIdentity
+            OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginIdentity}'
         Aliases:
           - !Ref FrontendDomain
         Enabled: 'true'
