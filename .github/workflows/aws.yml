@@ -5,18 +5,19 @@ on:
     branches:
       - main
     paths:
-    - 'frontend/**'
-    - 'frontend/*'
-    - 'backend/**'
-    - 'backend/*'
-    - '.github/workflows/aws.yml'
-    - 'cloudformation.yml'
+      - 'frontend/**'
+      - 'frontend/*'
+      - 'backend/**'
+      - 'backend/*'
+      - '.github/workflows/aws.yml'
+      - 'cloudformation.yml'
   workflow_dispatch:
 
 env:
   stack-name: emojify-prod
   environment-name: emojify-prod
-  certificate-arn: arn:aws:acm:us-east-2:${{ secrets.AWS_ACCOUNT_ID }}:certificate/2358ece1-9b02-43b4-936a-0f89442c3e62
+  certificate-arn: >-
+    arn:aws:acm:us-east-2:${{ secrets.AWS_ACCOUNT_ID }}:certificate/2358ece1-9b02-43b4-936a-0f89442c3e62
   frontend-domain: emojify.net
   backend-domain: api.emojify.net
   frontend-port: 3000
@@ -35,58 +36,58 @@ jobs:
     name: build and upload backend
     runs-on: ubuntu-18.04
     steps:
-    - name: Checkout this repo
-      uses: actions/checkout@v2
-      with:
-        ref: main
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+        with:
+          ref: main
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Create env file
-      run: |
-        cd backend
-        touch .env
-        echo PORT=${{ env.backend-port }} >> .env
+      - name: Create env file
+        run: |
+          cd backend
+          touch .env
+          echo PORT=${{ env.backend-port }} >> .env
 
-    - name: Build, tag, and push image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: emojify-backend
-        IMAGE_TAG: ${{ env.image_tag }}
-      run: |
-        cd backend
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: emojify-backend
+          IMAGE_TAG: ${{ env.image_tag }}
+        run: |
+          cd backend
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
   build-and-upload-frontend:
     name: build and upload frontend
     runs-on: ubuntu-18.04
     steps:
-    - name: Checkout this repo
-      uses: actions/checkout@v2
-      with:
-        ref: main
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+        with:
+          ref: main
 
-    - name: Create env file
-      run: |
-        cd frontend
-        touch .env
-        echo REACT_APP_API_URL=https://${{ env.backend-domain }} >> .env
-        echo REACT_APP_GOOGLE_ANALYTICS_TRACKING_ID=${{ env.google-analytics-tracking-id }} >> .env
+      - name: Create env file
+        run: |
+          cd frontend
+          touch .env
+          echo REACT_APP_API_URL=https://${{ env.backend-domain }} >> .env
+          echo REACT_APP_GOOGLE_ANALYTICS_TRACKING_ID=${{ env.google-analytics-tracking-id }} >> .env
 
-    - name: Build and push to S3 (non-destructive)
-      run: |
-        cd frontend
-        yarn install --production --silent
-        yarn build
-        aws s3 sync ./build s3://${{ env.frontend-domain }} || true
+      - name: Build and push to S3 (non-destructive)
+        run: |
+          cd frontend
+          yarn install --production --silent
+          yarn build
+          aws s3 sync ./build s3://${{ env.frontend-domain }} || true
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: frontend-build
-        path: frontend/build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: frontend-build
+          path: frontend/build
 
   cloudformation:
     name: cloudformation
@@ -96,27 +97,27 @@ jobs:
       - build-and-upload-frontend
 
     steps:
-    - name: Checkout this repo
-      uses: actions/checkout@v2
-      with:
-        ref: main
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+        with:
+          ref: main
 
-    - name: Deploy with CloudFormation
-      id: deploy-cloudformation
-      uses: aws-actions/aws-cloudformation-github-deploy@v1
-      with:
-        name: ${{ env.stack-name }}
-        template: cloudformation.yml
-        capabilities: CAPABILITY_NAMED_IAM
-        role-arn: ${{ env.cloudformation-role-arn }}
-        parameter-overrides: >-
-          DomainCertificateArn=${{ env.certificate-arn }},
-          ImagesTag=${{ env.image_tag }},
-          FrontendDomain=${{ env.frontend-domain }},
-          BackendDomain=${{ env.backend-domain }},
-          HostedZoneId=${{ env.hosted-zone-id }},
-          EnvironmentName=${{ env.environment-name }},
-          BackendContainerPort=${{ env.backend-port }},
+      - name: Deploy with CloudFormation
+        id: deploy-cloudformation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: ${{ env.stack-name }}
+          template: cloudformation.yml
+          capabilities: CAPABILITY_NAMED_IAM
+          role-arn: ${{ env.cloudformation-role-arn }}
+          parameter-overrides: >-
+            DomainCertificateArn=${{ env.certificate-arn }},
+            ImagesTag=${{ env.image_tag }},
+            FrontendDomain=${{ env.frontend-domain }},
+            BackendDomain=${{ env.backend-domain }},
+            HostedZoneId=${{ env.hosted-zone-id }},
+            EnvironmentName=${{ env.environment-name }},
+            BackendContainerPort=${{ env.backend-port }},
 
   finalize-frontend-upload:
     name: finish frontend upload
@@ -129,9 +130,7 @@ jobs:
         with:
           name: frontend-build
 
-    - name: Push build to S3 (destructive!)
-      run: |
-        cd frontend
-        aws s3 sync ./build s3://${{ env.frontend-domain }} --delete
-
-          
+      - name: Push build to S3 (destructive!)
+        run: |
+          cd frontend
+          aws s3 sync ./build s3://${{ env.frontend-domain }} --delete
