@@ -29,7 +29,7 @@ Parameters:
     Default: 1024
   BackendTaskCPU:
     Type: Number
-    Default: 512
+    Default: 256
   DesiredNumberOfBackendInstances:
     Type: Number
     Default: 1
