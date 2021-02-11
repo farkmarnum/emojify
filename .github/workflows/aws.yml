@@ -134,3 +134,4 @@ jobs:
         run: |
           cd frontend
           aws s3 sync ./build s3://${{ env.frontend-domain }} --delete
+
