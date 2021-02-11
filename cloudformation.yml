@@ -118,7 +118,7 @@ Resources:
         Enabled: 'true'
         DefaultRootObject: index.html
         DefaultCacheBehavior:
-          TargetOriginId: S3
+          TargetOriginId: S3Origin
           ViewerProtocolPolicy: redirect-to-https
           AllowedMethods:
             - GET
@@ -136,6 +136,8 @@ Resources:
           AcmCertificateArn: !Ref DomainCertificateArn
           SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1.2_2019
+    DependsOn:
+      - FrontendS3Bucket
 
   FrontendDNSRecord:
     Type: 'AWS::Route53::RecordSetGroup'
