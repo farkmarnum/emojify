@@ -257,7 +257,7 @@ Resources:
       ContainerDefinitions:
         - Name: !Ref EnvironmentName
           Essential: true
-          Image: !Sub '${AWS::AccountId}.dkr.ecr.us-east-2.amazonaws.com/emojify-backend:${ImagesTag}'
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/emojify-backend:${ImagesTag}'
           Environment:
             - Name: PORT
               Value: !Ref BackendContainerPort
@@ -305,5 +305,5 @@ Resources:
       - Name: !Sub 'www.${FrontendDomain}.'
         Type: A
         AliasTarget:
-          HostedZoneId: Z2O1EMRO9K5GLX # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
-          DNSName: s3-website.us-east-2.amazonaws.com # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
+          HostedZoneId: Z3AQBSTGFYJSTF # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
+          DNSName: s3-website.us-east-1.amazonaws.com # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints

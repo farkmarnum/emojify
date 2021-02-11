@@ -17,7 +17,8 @@ env:
   stack-name: emojify-prod
   environment-name: emojify-prod
   certificate-arn: >-
-    arn:aws:acm:us-east-2:${{ secrets.AWS_ACCOUNT_ID }}:certificate/2358ece1-9b02-43b4-936a-0f89442c3e62
+    arn:aws:acm:us-east-1:${{ secrets.AWS_ACCOUNT_ID }}:certificate/31d1bf02-c19f-47ee-bfb5-fb8ea987927d
+
   frontend-domain: emojify.net
   backend-domain: api.emojify.net
   frontend-port: 3000
@@ -25,7 +26,7 @@ env:
   hosted-zone-id: Z01187342BJLM81O38FA3
 
   cloudformation-role-arn: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/cloudformation-full
-  AWS_REGION: us-east-2
+  AWS_REGION: us-east-1
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   image_tag: ${{ github.sha }}
