@@ -80,7 +80,7 @@ jobs:
       - name: Build and push to S3 (non-destructive)
         run: |
           cd frontend
-          yarn install --production --silent
+          yarn install
           yarn build
           aws s3 sync ./build s3://${{ env.frontend-domain }} || true
 
