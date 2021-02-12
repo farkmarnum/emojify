@@ -130,9 +130,13 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: frontend-build
+          path: frontend/build
 
       - name: Push build to S3 (destructive!)
+        env:
+          STACK_NAME: ${{ env.stack-name }}
         run: |
           cd frontend
           aws s3 sync ./build s3://${{ env.frontend-domain }} --delete
-
+          DISTRIBUTION=$(aws cloudformation describe-stack-resources --profile mark --stack-name $STACK_NAME --logical-resource-id CloudFront | jq ".StackResources[0].PhysicalResourceId")
+          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION --paths "robots.txt" "favicon.ico" "index.html" "logo192.png" "logo512.png" "manifest.json" "css/normalize.css" "css/skeleton.css" "css/util.css" "asset-manifest.json"
