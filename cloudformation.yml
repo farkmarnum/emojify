@@ -101,12 +101,12 @@ Resources:
     Properties:
       SubnetId: !Ref Subnet2
       RouteTableId: !Ref PublicRouteTable
-  PublicSubnet1RouteTableAssociation:
+  PublicSubnet3RouteTableAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
       SubnetId: !Ref Subnet3
       RouteTableId: !Ref PublicRouteTable
-  PublicSubnet2RouteTableAssociation:
+  PublicSubnet4RouteTableAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
       SubnetId: !Ref Subnet4
