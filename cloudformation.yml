@@ -297,10 +297,10 @@ Resources:
         - Key: Name
           Value: !Sub '${EnvironmentName}-be-lb'
       Subnets:
-        - Subnet1
-        - Subnet2
-        - Subnet3
-        - Subnet4
+        - !Ref Subnet1
+        - !Ref Subnet2
+        - !Ref Subnet3
+        - !Ref Subnet4
       SecurityGroups:
         - !GetAtt BackendLoadBalancerSecurityGroup.GroupId
 
@@ -315,10 +315,10 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
           Subnets:
-            - Subnet1
-            - Subnet2
-            - Subnet3
-            - Subnet4
+            - !Ref Subnet1
+            - !Ref Subnet2
+            - !Ref Subnet3
+            - !Ref Subnet4
           SecurityGroups:
             - !GetAtt BackendSecurityGroup.GroupId
       LoadBalancers:
