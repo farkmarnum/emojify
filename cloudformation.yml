@@ -386,4 +386,4 @@ Resources:
         Type: A
         AliasTarget:
           HostedZoneId: Z3AQBSTGFYJSTF # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
-          DNSName: s3-website.us-east-1.amazonaws.com # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
+          DNSName: s3-website-us-east-1.amazonaws.com # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints

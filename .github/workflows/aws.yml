@@ -14,8 +14,8 @@ on:
   workflow_dispatch:
 
 env:
-  stack-name: emojify-prod
-  environment-name: emojify-prod
+  stack-name: emojify
+  environment-name: emojify
   certificate-arn: >-
     arn:aws:acm:us-east-1:${{ secrets.AWS_ACCOUNT_ID }}:certificate/31d1bf02-c19f-47ee-bfb5-fb8ea987927d
 
