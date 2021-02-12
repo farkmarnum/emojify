@@ -30,8 +30,6 @@ Parameters:
     Default: 3000
 
 Resources:
-  # SHARED
-Resources:
   VPC:
     Type: 'AWS::EC2::VPC'
     Properties:
@@ -96,22 +94,22 @@ Resources:
   PublicSubnet1RouteTableAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
-      SubnetId: !Ref PublicSubnet1
+      SubnetId: !Ref Subnet1
       RouteTableId: !Ref PublicRouteTable
   PublicSubnet2RouteTableAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
-      SubnetId: !Ref PublicSubnet2
+      SubnetId: !Ref Subnet2
       RouteTableId: !Ref PublicRouteTable
   PublicSubnet1RouteTableAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
-      SubnetId: !Ref PublicSubnet3
+      SubnetId: !Ref Subnet3
       RouteTableId: !Ref PublicRouteTable
   PublicSubnet2RouteTableAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
-      SubnetId: !Ref PublicSubnet4
+      SubnetId: !Ref Subnet4
       RouteTableId: !Ref PublicRouteTable
 
   CloudWatchLogsGroup:
