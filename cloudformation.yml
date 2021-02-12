@@ -296,7 +296,11 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${EnvironmentName}-be-lb'
-      Subnets: !Sub '${Subnet1},${Subnet2},${Subnet3},${Subnet4}'
+      Subnets:
+        - Subnet1
+        - Subnet2
+        - Subnet3
+        - Subnet4
       SecurityGroups:
         - !GetAtt BackendLoadBalancerSecurityGroup.GroupId
 
@@ -310,7 +314,11 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          Subnets: !Sub '${Subnet1},${Subnet2},${Subnet3},${Subnet4}'
+          Subnets:
+            - Subnet1
+            - Subnet2
+            - Subnet3
+            - Subnet4
           SecurityGroups:
             - !GetAtt BackendSecurityGroup.GroupId
       LoadBalancers:
