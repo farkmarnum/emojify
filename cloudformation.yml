@@ -12,14 +12,6 @@ Parameters:
   HostedZoneId:
     Type: String
 
-  VPC:
-    Type: 'AWS::EC2::VPC::Id'
-    Description: Choose which VPC the Application Load Balancer should be deployed to
-    Default: vpc-72b6bd1a
-  Subnets:
-    Description: Choose which subnets the Application Load Balancer should be deployed to
-    Type: 'List<AWS::EC2::Subnet::Id>'
-    Default: subnet-9e5361f6,subnet-886109f2
   EnvironmentName:
     Type: String
     MaxLength: 16
@@ -38,7 +30,90 @@ Parameters:
     Default: 3000
 
 Resources:
-  # SHARED:
+  # SHARED
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 172.31.0.0/16
+  Subnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1a
+      CidrBlock: 172.31.1.0/24
+      MapPublicIpOnLaunch: true
+  Subnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1b
+      CidrBlock: 172.31.2.0/24
+      MapPublicIpOnLaunch: true
+  Subnet3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1c
+      CidrBlock: 172.31.3.0/24
+      MapPublicIpOnLaunch: true
+  Subnet4:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1d
+      CidrBlock: 172.31.4.0/24
+      MapPublicIpOnLaunch: true
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join [_, [!Ref 'AWS::StackName']]
+        - Key: Network
+          Value: Public
+  GatewayToInternet:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Network
+          Value: Public
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: GatewayToInternet
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+  PublicSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+  PublicSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref PublicRouteTable
+  PublicSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet4
+      RouteTableId: !Ref PublicRouteTable
+
   CloudWatchLogsGroup:
     Type: 'AWS::Logs::LogGroup'
     Properties:
@@ -173,7 +248,6 @@ Resources:
           FromPort: !Ref BackendContainerPort
           ToPort: !Ref BackendContainerPort
           SourceSecurityGroupId: !GetAtt BackendLoadBalancerSecurityGroup.GroupId
-    
   BackendTargetGroup:
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
     Properties:
@@ -224,7 +298,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${EnvironmentName}-be-lb'
-      Subnets: !Ref Subnets
+      Subnets: !Sub '${Subnet1},${Subnet2},${Subnet3},${Subnet4}'
       SecurityGroups:
         - !GetAtt BackendLoadBalancerSecurityGroup.GroupId
 
@@ -238,7 +312,7 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          Subnets: !Ref Subnets
+          Subnets: !Sub '${Subnet1},${Subnet2},${Subnet3},${Subnet4}'
           SecurityGroups:
             - !GetAtt BackendSecurityGroup.GroupId
       LoadBalancers:
