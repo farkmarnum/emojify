@@ -111,6 +111,7 @@ jobs:
           template: cloudformation.yml
           capabilities: CAPABILITY_NAMED_IAM
           role-arn: ${{ env.cloudformation-role-arn }}
+          no-fail-on-empty-changeset: "1"
           parameter-overrides: >-
             DomainCertificateArn=${{ env.certificate-arn }},
             ImagesTag=${{ env.image_tag }},
@@ -139,4 +140,4 @@ jobs:
           cd frontend
           aws s3 sync ./build s3://${{ env.frontend-domain }} --delete
           DISTRIBUTION=$(aws cloudformation describe-stack-resources --profile mark --stack-name $STACK_NAME --logical-resource-id CloudFront | jq ".StackResources[0].PhysicalResourceId")
-          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION --paths "robots.txt" "favicon.ico" "index.html" "logo192.png" "logo512.png" "manifest.json" "css/normalize.css" "css/skeleton.css" "css/util.css" "asset-manifest.json"
+          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION --paths "/robots.txt" "/favicon.ico" "/index.html" "/logo192.png" "/logo512.png" "/manifest.json" "/css/normalize.css" "/css/skeleton.css" "/css/util.css" "/asset-manifest.json"
