@@ -227,6 +227,7 @@ Resources:
   BackendLoadBalancerSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
+      VpcId: !Ref VPC
       GroupDescription: 80 and 443 from all
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -240,6 +241,7 @@ Resources:
   BackendSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
+      VpcId: !Ref VPC
       GroupDescription: Load Balancer to container port
       SecurityGroupIngress:
         - IpProtocol: tcp
