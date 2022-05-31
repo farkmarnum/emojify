@@ -1,27 +1,32 @@
-import * as express from 'express'
 import * as dotenv from 'dotenv'
-import * as cors from 'cors'
-import * as bodyParser from 'body-parser'
 
 import * as emojiData from '../data/emoji-data.json'
 import { commonWords, inappropriateEmojis } from '../data/constants'
 
+dotenv.config()
+
+const TelegramBot = require("node-telegram-bot-api");
+
+const token = process.env.TELEGRAM_BOT_TOKEN;
+
+const bot = new TelegramBot(token, {polling: true});
+
+bot.on('message', (msg) => {
+  const chatId = msg.chat.id;
+
+  if (msg.text === '/about') {
+    bot.sendMessage(chatId, "I emojify your text. Send me any message to get it emojified!\n\n" +
+      "Credits: emojify.net // Mark Farnum");
+  } else {
+    bot.sendMessage(chatId, emojify(msg.text))
+  }
+});
+
 const isInappropriate = (str) =>
   inappropriateEmojis.some((emoji) => str.includes(emoji))
 
-dotenv.config()
-
-const app = express()
-app.use(cors())
-
-app.use(bodyParser.json({ limit: '500kb' }))
-
-// For health checks:
-app.get('/', (_req: express.Request, res: express.Result) => {
-  res.sendStatus(200)
-})
-
-const emojify = (words, density, shouldFilterEmojis) => {
+const emojify = (input, density = 100, shouldFilterEmojis = false) => {
+  const words = input.replace(/\n/g, ' \n ').split(' ')
     return words
       .reduce((acc: string, wordRaw: string) => {
         const word = wordRaw.replace(/[^0-9a-zA-Z]/g, '').toLowerCase()
@@ -58,16 +63,4 @@ const emojify = (words, density, shouldFilterEmojis) => {
 
 }
 
-app.post('/convert', (req: express.Request, res: express.Result) => {
-  const { input, density, shouldFilterEmojis } = req.body
-
-  const words = input.replace(/\n/g, ' ').split(' ')
-
-  const result = emojify(words, density, shouldFilterEmojis)
-
-  res.json({ result })
-})
-
-app.listen(process.env.PORT)
-
-console.info(`Server running on port ${process.env.PORT}`)
+console.log(emojify("Bot is ready to go!"));
