@@ -1,9 +1,18 @@
 module.exports = {
-  parser: 'babel-eslint',
+  parser: '@typescript-eslint/parser',
 
-  extends: ['airbnb', 'prettier', 'prettier/react'],
+  parserOptions: {
+    project: "./tsconfig.json",
+  },
 
-  plugins: ['prettier'],
+  extends: [
+    'airbnb',
+    'airbnb-typescript',
+    'plugin:@typescript-eslint/recommended',
+    'prettier',
+  ],
+
+  plugins: ['prettier', '@typescript-eslint'],
 
   env: {
     browser: true,
@@ -26,16 +35,8 @@ module.exports = {
       },
     ],
     'no-console': ['error', { allow: ['info', 'warn', 'error'] }],
-  },
 
-  settings: {
-    // Allow absolute paths in imports, e.g. import Button from 'components/Button'
-    // https://github.com/benmosher/eslint-plugin-import/tree/master/resolvers
-    'import/resolver': {
-      node: {
-        moduleDirectory: ['node_modules', 'src'],
-        extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
-      },
-    },
+    'import/prefer-default-export': 'off',
+    'react/function-component-definition': 'off',
   },
-}
+};

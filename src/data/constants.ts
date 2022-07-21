@@ -17,7 +17,7 @@ export const commonWords = new Set([
   'at',
   'was',
   'and',
-])
+]);
 
 export const inappropriateEmojis = [
   '🍆',
@@ -34,4 +34,4 @@ export const inappropriateEmojis = [
   '🔪',
   '💊',
   '💉',
-]
+];
