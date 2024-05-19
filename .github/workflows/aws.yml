@@ -37,4 +37,4 @@ jobs:
           yarn install
           yarn build
           aws s3 sync ./build s3://${{ env.frontend-domain }} --delete
-          aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION --paths "/robots.txt" "/favicon.ico" "/index.html" "/logo192.png" "/logo512.png" "/manifest.json" "/css/normalize.css" "/css/skeleton.css" "/css/util.css" "/asset-manifest.json"
+          aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION --paths "/robots.txt" "/favicon.ico" "/index.html" "/logo192.png" "/logo512.png" "/css/normalize.css" "/css/skeleton.css" "/css/util.css" "/asset-manifest.json"
